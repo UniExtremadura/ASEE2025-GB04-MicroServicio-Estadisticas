@@ -1,0 +1,367 @@
+openapi: 3.0.3
+info:
+  title: Microservicio de Estadísticas, Recomendaciones y Personalización - Plataforma Musical
+  version: 1.0.0
+  description: API para el registro de historial, la generación de playlists inteligentes y el acceso a métricas de uso.
+
+servers:
+  - url: http://localhost:8082/api
+
+tags:
+  - name: Estadísticas
+  - name: Valoraciones
+  - name: Recomendaciones
+
+paths:
+  /recomendaciones/{email}:
+    get:
+      tags: [Recomendaciones]
+      summary: Obtener recomendaciones para un usuario
+      operationId: obtenerRecomendaciones
+      description: Proporciona una lista de canciones recomendadas para un usuario basándose en las valoraciones de otros usuarios.
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+          description: Email del usuario para el que se generan las recomendaciones
+      responses:
+        '200':
+          description: Lista de recomendaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recomendacion'
+        '404':
+          description: Usuario no encontrado
+
+  /estadistica/artista/{email}:
+    get:
+      tags: [Estadísticas]
+      summary: Obtener métricas de desempeño del artista
+      operationId: obtenerMeticasDesempenoArtista  # <-- CAMBIO AÑADIDO
+      description: Proporciona al músico métricas de reproducción, ingresos y popularidad de sus canciones y álbumes.
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+          description: Email del artista (para autenticación y consulta)
+        - in: query
+          name: periodo
+          schema:
+            type: string
+            enum: [semana, mes, anio, total]
+          description: Periodo de tiempo para el cálculo de métricas
+      responses:
+        '200':
+          description: Métricas de desempeño del artista
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadisticaArtista'
+        '403':
+          description: No autorizado
+        '404':
+          description: Artista no encontrado
+
+  /Estadistica/cancion/{id}:
+    get:
+      tags: [Estadísticas]
+      summary: Obtener métricas detalladas de una canción
+      operationId: obtenerMeticasDetalladasCancion # <-- CAMBIO AÑADIDO
+      description: Proporciona métricas de reproducciones por país/edad/etc. (solo accesible para el artista propietario).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la canción
+        - in: header
+          name: X-User-Email
+          required: true
+          schema:
+            type: string
+          description: Email del artista que consulta
+      responses:
+        '200':
+          description: Métricas detalladas de la canción
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadisticaCancion'
+        '403':
+          description: No autorizado o no es el artista propietario
+        '404':
+          description: Canción no encontrada
+          
+  /valoraciones:
+    post:
+      tags: [Valoraciones]
+      summary: Dejar valoración
+      operationId: dejarValoracion                 # <-- CAMBIO AÑADIDO
+      description: Permite a un usuario registrado valorar una canción
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValoracionInput'
+      responses:
+        '201':
+          description: Valoración registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Valoracion'
+        '400':
+          description: Valoración inválida (usuario ya valoró esta canción)
+
+    get:
+      tags: [Valoraciones]
+      summary: Listar valoraciones (Solo para administradores)
+      operationId: listarValoraciones            # <-- CAMBIO AÑADIDO
+      description: Permite a los administradores ver todas las valoraciones filtradas por usuario o canción
+      parameters:
+        - in: query
+          name: idCancion
+          schema: { type: integer }
+          description: Filtrar por ID de canción
+        - in: query
+          name: emailUser
+          schema: { type: string }
+          description: Filtrar por usuario
+        - in: header
+          name: X-User-Role
+          required: true
+          schema: { type: string, enum: [admin] }
+          description: Rol del usuario (debe ser admin)
+      responses:
+        '200':
+          description: Lista de valoraciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Valoracion'
+        '403':
+          description: Acceso denegado - Solo administradores
+
+  /canciones/{id}/valoraciones:
+    get:
+      tags: [Valoraciones]
+      summary: Ver valoraciones de una canción específica
+      operationId: verValoracionesCancion        # <-- CAMBIO AÑADIDO
+      description: Artistas pueden ver todas las valoraciones de sus canciones. Usuarios regulares solo ven la valoración media.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: ID de la canción
+        - in: header
+          name: X-User-Email
+          required: true
+          schema: { type: string }
+          description: Email del usuario que hace la petición
+        - in: header
+          name: X-User-Role
+          schema: { type: string, enum: [usuario, artista] }
+          description: Rol del usuario (usuario o artista)
+      responses:
+        '200':
+          description: Valoraciones de la canción
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ValoracionMedia'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Valoracion'
+        '403':
+          description: No autorizado para ver valoraciones detalladas de esta canción
+        '404':
+          description: Canción no encontrada
+
+  /canciones/{id}/valoracion-media:
+    get:
+      tags: [Valoraciones]
+      summary: Obtener valoración media de una canción
+      operationId: obtenerValoracionMedia        # <-- CAMBIO AÑADIDO
+      description: Cualquier usuario puede ver la valoración media y el número total de valoraciones
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: ID de la canción
+      responses:
+        '200':
+          description: Valoración media de la canción
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValoracionMedia'
+        '404':
+          description: Canción no encontrada
+
+components:
+  schemas:
+    EstadisticaArtista:
+      type: object
+      description: Métricas agregadas para un artista
+      properties:
+        emailArtista:
+          type: string
+        totalReproducciones:
+          type: integer
+        totalIngresos:
+          type: number
+          format: float
+        topCanciones:
+          type: array
+          items:
+            type: object
+            properties:
+              idCancion:
+                type: integer
+              nomCancion:
+                type: string
+              reproducciones:
+                type: integer
+        periodo:
+          type: string
+          description: Periodo al que corresponden las métricas
+        fechaCalculo:
+          type: string
+          format: date-time
+          description: Fecha y hora del cálculo de las métricas
+        crecimiento:
+          type: number
+          format: float
+          description: Crecimiento porcentual respecto al periodo anterior
+
+    EstadisticaCancion:
+      type: object
+      description: Métricas detalladas y segmentadas de una canción
+      properties:
+        idCancion:
+          type: integer
+        nomCancion:
+          type: string
+        reproduccionesTotales:
+          type: integer
+          additionalProperties:
+            type: integer
+        reproduccionesPorEdad:
+          type: object
+          additionalProperties:
+            type: integer
+        reproduccionesPorGenero:
+          type: object
+          additionalProperties:
+            type: integer
+        fechaCalculo:
+          type: string
+          format: date-time
+          description: Fecha y hora del cálculo de las métricas
+
+
+    Valoracion:
+      type: object
+      properties:
+        id:
+          type: integer
+        emailUser:
+          type: string
+        idSong:
+          type: integer
+        valoracion:
+          type: integer
+          minimum: 1
+          maximum: 5
+        fechaValoracion:
+          type: string
+          format: date-time
+          description: Cuándo se hizo la valoración
+
+    ValoracionInput:
+      type: object
+      required: [emailUser, idSong, valoracion]
+      properties:
+        emailUser:
+          type: string
+        idSong:
+          type: integer
+        valoracion:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Puntuación de 1 a 5 estrellas
+
+    ValoracionMedia:
+      type: object
+      description: Valoración media y estadísticas de una canción
+      properties:
+        idCancion:
+          type: integer
+          description: ID de la canción
+        valoracionMedia:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 5
+          description: Puntuación media (1-5 estrellas)
+        totalValoraciones:
+          type: integer
+          description: Número total de valoraciones recibidas
+        distribucion:
+          type: object
+          description: Distribución de valoraciones por puntuación
+          properties:
+            estrellas5:
+              type: integer
+              description: Número de valoraciones de 5 estrellas
+            estrellas4:
+              type: integer
+              description: Número de valoraciones de 4 estrellas
+            estrellas3:
+              type: integer
+              description: Número de valoraciones de 3 estrellas
+            estrellas2:
+              type: integer
+              description: Número de valoraciones de 2 estrellas
+            estrellas1:
+              type: integer
+              description: Número de valoraciones de 1 estre
+
+    Recomendacion:
+      type: object
+      properties:
+        tipoContenido:
+          type: string
+          enum: [cancion, album]
+        idContenido:
+          type: integer
+        nomContenido:
+          type: string
+        artistas:
+          type: array
+          items:
+            type: string
+        razon:
+          type: string
+          description: Breve texto sobre por qué se recomienda
+        confianza:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Nivel de confianza de la recomendación (0-1)
