@@ -5,6 +5,7 @@ public class Valoracion {
     private String emailUser;
     private Integer idSong;
     private Integer valoracion;
+    private String comentario;
 
     public Integer getId() {
         return id;
@@ -36,5 +37,13 @@ public class Valoracion {
 
     public void setValoracion(Integer valoracion) {
         this.valoracion = valoracion;
+    }
+
+    public String getComentario() {
+        return comentario;
+    }
+
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
     }
 }

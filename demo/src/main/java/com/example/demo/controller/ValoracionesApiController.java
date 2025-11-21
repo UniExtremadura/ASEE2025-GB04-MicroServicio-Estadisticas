@@ -1,18 +1,26 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Valoracion;
-import com.example.demo.model.ValoracionInput;
-import com.example.demo.model.ValoracionMedia;
-import com.example.demo.model.ValoracionDocument;
-import com.example.demo.repository.ValoracionRepository;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.example.demo.model.Valoracion;
+import com.example.demo.model.ValoracionDocument;
+import com.example.demo.model.ValoracionInput;
+import com.example.demo.repository.ValoracionRepository;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api")
@@ -27,50 +35,61 @@ public class ValoracionesApiController {
     public ResponseEntity<Valoracion> dejarValoracion(@RequestBody ValoracionInput valoracionInput) {
         
         ValoracionDocument doc = new ValoracionDocument();
-        doc.setEmailUser(valoracionInput.getEmailUser());
+        doc.setEmailUsuario(valoracionInput.getEmailUser());
         doc.setIdSong(valoracionInput.getIdSong());
         doc.setValoracion(valoracionInput.getValoracion());
+        doc.setComentario(valoracionInput.getComentario());
 
         ValoracionDocument docGuardado = valoracionRepository.save(doc);
 
         Valoracion respuesta = new Valoracion();
-        // Asumiendo que el ID de mongo es numérico o se puede convertir. ¡Cuidado en producción!
+
         try {
-            respuesta.setId(Integer.parseInt(docGuardado.getId()));
+             // ⚠ ATENCIÓN: Esta conversión sigue siendo muy insegura si MongoDB usa ObjectId.
+             respuesta.setId(Integer.parseInt(docGuardado.getId()));
         } catch (NumberFormatException e) {
-            // Si el ID no es un entero, no lo establecemos o usamos otro campo.
-            // Para este ejemplo, lo dejamos nulo si falla.
+             // Dejamos el ID nulo en la respuesta si la conversión falla.
         }
-        respuesta.setEmailUser(docGuardado.getEmailUser());
+        
+        // 🚩 CORRECCIÓN 3: Usar getEmailUsuario()
+        respuesta.setEmailUser(docGuardado.getEmailUsuario());
         respuesta.setIdSong(docGuardado.getIdSong());
         respuesta.setValoracion(docGuardado.getValoracion());
+        respuesta.setComentario(docGuardado.getComentario());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
 
     @GetMapping("/canciones/{id}/valoracion-media")
-    @Operation(summary = "Obtener valoración media de una canción", description = "Cualquier usuario puede ver la valoración media y el número total de valoraciones")
-    public ResponseEntity<ValoracionMedia> obtenerValoracionMedia(@PathVariable("id") Integer id) {
-        
-        List<ValoracionDocument> valoraciones = valoracionRepository.findByIdSong(id);
+@Operation(summary = "Obtener valoración media", description = "Devuelve un JSON con la media y el total")
+public ResponseEntity<Map<String, Object>> obtenerValoracionMedia(@PathVariable("id") Integer id) {
 
-        if (valoraciones.isEmpty()) {
-            ValoracionMedia media = new ValoracionMedia();
-            media.setIdCancion(id);
-            media.setValoracionMedia(0.0f);
-            media.setTotalValoraciones(0);
-            return ResponseEntity.ok(media);
-        }
+    // 1. Buscamos las valoraciones
+    List<ValoracionDocument> valoraciones = valoracionRepository.findByIdSong(id);
 
-        int totalValoraciones = valoraciones.size();
-        double sumaDePuntuaciones = valoraciones.stream().mapToDouble(ValoracionDocument::getValoracion).sum();
-        float mediaCalculada = (float) (sumaDePuntuaciones / totalValoraciones);
+    // 2. Preparamos el "Map" que servirá como respuesta JSON
+    Map<String, Object> respuesta = new HashMap<>();
+    respuesta.put("idCancion", id);
 
-        ValoracionMedia respuesta = new ValoracionMedia();
-        respuesta.setIdCancion(id);
-        respuesta.setTotalValoraciones(totalValoraciones);
-        respuesta.setValoracionMedia(mediaCalculada);
-
+    // 3. Si la lista está vacía, devolvemos 0
+    if (valoraciones.isEmpty()) {
+        respuesta.put("valoracionMedia", 0.0f);
+        respuesta.put("totalValoraciones", 0);
         return ResponseEntity.ok(respuesta);
     }
+
+    // 4. Calculamos la media
+    int totalValoraciones = valoraciones.size();
+    double sumaDePuntuaciones = valoraciones.stream()
+                                .mapToDouble(ValoracionDocument::getValoracion)
+                                .sum();
+    
+    float mediaCalculada = (float) (sumaDePuntuaciones / totalValoraciones);
+
+    // 5. Rellenamos el mapa
+    respuesta.put("valoracionMedia", mediaCalculada);
+    respuesta.put("totalValoraciones", totalValoraciones);
+
+    return ResponseEntity.ok(respuesta);
+}
 }

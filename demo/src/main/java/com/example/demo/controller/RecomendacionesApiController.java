@@ -1,16 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Recomendacion;
-import com.example.demo.model.ValoracionDocument;
-import com.example.demo.repository.ValoracionRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.demo.repository.ValoracionRepository;
 
 @RestController
 @RequestMapping("/api")
@@ -29,7 +25,7 @@ public class RecomendacionesApiController {
         return List.of("Artista del " + id);
     }
 
-    @GetMapping("/recomendaciones/{email}")
+    /*@GetMapping("/recomendaciones/{email}")
     public List<Recomendacion> getRecomendaciones(@PathVariable String email) {
         // 1. Obtener las canciones que el usuario ya ha valorado.
         List<Integer> userRatedSongIds = valoracionRepository.findByEmailUser(email)
@@ -61,5 +57,5 @@ public class RecomendacionesApiController {
                 })
                 .limit(10) // Limitar el número de recomendaciones
                 .collect(Collectors.toList());
-    }
+    }*/
 }
