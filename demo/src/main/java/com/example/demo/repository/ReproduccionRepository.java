@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -26,4 +27,6 @@ public interface ReproduccionRepository extends MongoRepository<ReproduccionDocu
      */
     @Aggregation(pipeline = { "{ '$group': { '_id': '$idCancion' } }" })
     List<Integer> findAllSongIdsDistinct();
+
+    long countByIdCancionAndFechaBetween(Integer idCancion, LocalDateTime start, LocalDateTime end);
 }
