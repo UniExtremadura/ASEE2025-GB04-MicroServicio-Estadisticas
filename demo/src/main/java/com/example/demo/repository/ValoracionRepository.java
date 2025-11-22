@@ -2,15 +2,23 @@ package com.example.demo.repository;
 
 import java.util.List;
 
-import com.example.demo.model.ValoracionDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface ValoracionRepository extends MongoRepository<ValoracionDocument, String> {
-    
-    // Este método es crucial para la lógica de la media y debe estar aquí.
-    List<ValoracionDocument> findByIdSong(Integer idSong);
+import com.example.demo.model.ValoracionDocument;
 
-    // Métodos para la lógica de recomendaciones
-    List<ValoracionDocument> findByEmailUser(String email);
+public interface ValoracionRepository extends MongoRepository<ValoracionDocument, String> {
+  
+    List<ValoracionDocument> findByIdSong(Integer idSong);
+    
+   
+    List<ValoracionDocument> findByIdAlbum(Integer idAlbum);
+    
+
+    List<ValoracionDocument> findByEmailArtista(String emailArtista);
+
+    List<ValoracionDocument> findByEmailUsuario(String emailUsuario);
+    
     List<ValoracionDocument> findByValoracionGreaterThan(int valoracion);
+
+    void deleteByIdSong(Integer idSong);
 }

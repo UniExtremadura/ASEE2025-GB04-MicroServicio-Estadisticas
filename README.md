@@ -28,7 +28,7 @@ Verifica en el Terminal: Abre un nuevo terminal (Ctrl + Ñ) y escribe java -vers
     ```sh
     cd ASEE2025-GB04-MicroServicio-Estadisticas/demo
     ```
-
+    CD DEMO PARA EJECUTAR 
 3.  **Ejecutar la aplicación**:
     Puedes usar el wrapper de Maven incluido en el proyecto para iniciar la aplicación.
 
@@ -44,4 +44,4 @@ Verifica en el Terminal: Abre un nuevo terminal (Ctrl + Ñ) y escribe java -vers
         ./mvnw spring-boot:run
         ```
 
-Una vez iniciado, el servicio estará disponible en `http://localhost:8080` (o el puerto que hayas configurado). La especificación de la API (OpenAPI) estará visible en `http://localhost:8080/swatgger-ui.html`.
+Una vez iniciado, el servicio estará disponible en `http://localhost:8081` (o el puerto que hayas configurado). La especificación de la API (OpenAPI) estará visible en `http://localhost:8081/swagger-ui.html`.
