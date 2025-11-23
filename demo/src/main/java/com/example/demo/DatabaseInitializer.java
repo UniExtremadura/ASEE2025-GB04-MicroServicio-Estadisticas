@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 import com.example.demo.model.EstadisticaAlbumDocument;
 import com.example.demo.model.EstadisticaCancionDocument;
 import com.example.demo.repository.EstadisticaAlbumRepository;
-import com.example.demo.repository.EstadisticaArtistaRepository;
 import com.example.demo.repository.EstadisticaCancionRepository;
 import com.example.demo.service.ContenidoService;
+import com.example.demo.service.EstadisticasUpdaterService;
 
 @Component
 public class DatabaseInitializer implements CommandLineRunner {
@@ -18,22 +18,25 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final ContenidoService contenidoService;
     private final EstadisticaCancionRepository cancionRepository;
     private final EstadisticaAlbumRepository albumRepository;
+    private final EstadisticasUpdaterService updaterService;
 
     public DatabaseInitializer(
         ContenidoService contenidoService, 
         EstadisticaCancionRepository cancionRepository,
         EstadisticaAlbumRepository albumRepository,
-        EstadisticaArtistaRepository artistaRepository
+        EstadisticasUpdaterService updaterService
     ) {
         this.contenidoService = contenidoService;
         this.cancionRepository = cancionRepository;
         this.albumRepository = albumRepository;
+        this.updaterService = updaterService;
     }
 
     @Override
     public void run(String... args) throws Exception {
         inicializarEstadisticasCanciones();
         inicializarEstadisticasAlbumes();
+        actualizarEstadisticasExistentes();
     }
     // ------------------------------------
     // INICIALIZACIÓN DE CANCIONES (Lógica Idempotente Correcta)
@@ -84,7 +87,23 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
     
     // ------------------------------------
-    // INICIALIZACIÓN DE ARTISTAS (Lógica Idempotente Correcta)
+    // ACTUALIZACIÓN FORZADA DE ESTADÍSTICAS
     // ------------------------------------
+    private void actualizarEstadisticasExistentes() {
+        System.out.println("--- Actualizando todas las estadísticas existentes ---");
 
+        List<Integer> idsCanciones = contenidoService.obtenerIdsCanciones();
+        if (idsCanciones != null && !idsCanciones.isEmpty()) {
+            for (Integer id : idsCanciones) {
+                updaterService.actualizarEstadisticasCancion(id);
+            }
+        }
+
+        List<Integer> idsAlbumes = contenidoService.obtenerIdsAlbumes();
+        if (idsAlbumes != null && !idsAlbumes.isEmpty()) {
+            for (Integer id : idsAlbumes) {
+                updaterService.actualizarReproduccionesTotalesAlbum(id);
+            }
+        }
+    }
 }

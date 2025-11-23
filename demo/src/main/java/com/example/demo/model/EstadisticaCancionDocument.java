@@ -12,19 +12,24 @@ public class EstadisticaCancionDocument {
     @Id 
     private Integer idCancion;
     
-    private Integer reproduccionesTotales = 0;
+    private Long reproduccionesTotales = 0L;
     private Float valoracionMedia = 0.0f;
     private Integer totalValoraciones = 0;
+    private double ingresos;
 
     public Integer getIdCancion() { return idCancion; }
     public void setIdCancion(Integer idCancion) { this.idCancion = idCancion; }
     
-    public Integer getReproduccionesTotales() { return reproduccionesTotales; }
-    public void setReproduccionesTotales(Integer reproduccionesTotales) { this.reproduccionesTotales = reproduccionesTotales; }
+    public Long getReproduccionesTotales() { return reproduccionesTotales; }
+    public void setReproduccionesTotales(Long reproduccionesTotales) { this.reproduccionesTotales = reproduccionesTotales; }
     
     public Float getValoracionMedia() { return valoracionMedia; }
     public void setValoracionMedia(Float valoracionMedia) { this.valoracionMedia = valoracionMedia; }
     
     public Integer getTotalValoraciones() { return totalValoraciones; }
     public void setTotalValoraciones(Integer totalValoraciones) { this.totalValoraciones = totalValoraciones; }
+
+    public double getIngresos() {return ingresos; }
+
+    public void setIngresos(double ingresos) {   this.ingresos = ingresos;  }
 }

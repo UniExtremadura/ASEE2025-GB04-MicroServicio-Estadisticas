@@ -8,22 +8,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.demo.model.ExternalSongData;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 public class ContenidoService {
 
-@Value("${contenido.service.url:http://localhost:8080}") 
+    @Value("${contenido.service.url:http://localhost:8080}") 
     private String CONTENIDO_BASE_URL; 
 
-    // Asumimos que la URL de Usuario es http://localhost:8000/api
     @Value("${usuario.service.url:http://localhost:8000}") 
     private String USUARIO_BASE_URL;
     
@@ -37,12 +33,10 @@ public class ContenidoService {
     // MÉTODOS PARA OBTENER IDs DEL SERVICIO EXTERNO
     // ------------------------------------
 
- public List<Integer> obtenerIdsCanciones() {
-        // La URL final es http://localhost:8080/api/canciones
+    public List<Integer> obtenerIdsCanciones() {
         String url = CONTENIDO_BASE_URL + "/api/canciones"; 
         
         try {
-            // 1. Cambiamos el tipo de la respuesta para que pueda mapear la lista de objetos JSON
             ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
                 url, 
                 HttpMethod.GET, 
@@ -50,7 +44,6 @@ public class ContenidoService {
                 new ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
             
-            // 2. Extraemos el campo "id" de cada objeto JSON y lo convertimos a List<Integer>
             return response.getBody() != null ? response.getBody().stream()
                 .map(map -> (Integer) map.get("id")) 
                 .collect(Collectors.toList())
@@ -64,11 +57,9 @@ public class ContenidoService {
 
 
     public List<Integer> obtenerIdsAlbumes() {
-        // La URL final es http://localhost:8080/api/canciones
         String url = CONTENIDO_BASE_URL + "/api/albumes"; 
         
         try {
-            // 1. Cambiamos el tipo de la respuesta para que pueda mapear la lista de objetos JSON
             ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
                 url, 
                 HttpMethod.GET, 
@@ -76,81 +67,80 @@ public class ContenidoService {
                 new ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
             
-            // 2. Extraemos el campo "id" de cada objeto JSON y lo convertimos a List<Integer>
             return response.getBody() != null ? response.getBody().stream()
                 .map(map -> (Integer) map.get("id")) 
                 .collect(Collectors.toList())
                 : Collections.emptyList();
 
         } catch (Exception e) {
-            System.err.println("Error al obtener IDs de canciones: " + e.getMessage());
+            System.err.println("Error al obtener IDs de álbumes: " + e.getMessage());
             return Collections.emptyList();
         }
     }
     
+    // -------------------------------------------------------------------------
+    // CLIENTE: Llama al endpoint /canciones-ids del otro microservicio
+    // -------------------------------------------------------------------------
     public List<Integer> obtenerIdsCancionesPorAlbum(Integer albumId) {
-        String url = CONTENIDO_BASE_URL + "/albumes/" + albumId;
+        
+        // 1. Usamos la URL que YA EXISTE en tu API de Contenidos:
+        //    GET /api/albumes/{album_id}/canciones
+        String url = CONTENIDO_BASE_URL + "/api/albumes/" + albumId + "/canciones";
         
         try {
-            // Llama al endpoint y obtiene la respuesta como String
-            String jsonResponse = restTemplate.getForObject(url, String.class);
-            
-            // Usamos ObjectMapper para parsear el JSON y extraer el array "canciones_ids"
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(jsonResponse);
-            JsonNode cancionesIdsNode = root.get("canciones_ids");
+            // 2. Como el endpoint devuelve la lista completa de objetos Canción (con titulo, fecha, etc.),
+            //    recibimos una lista de Mapas (JSON objects) en lugar de una lista de Integers.
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            );
 
-            if (cancionesIdsNode != null && cancionesIdsNode.isArray()) {
-                // Mapea los nodos a Integer
-                return StreamSupport.stream(cancionesIdsNode.spliterator(), false)
-                    .map(JsonNode::asInt)
-                    .collect(Collectors.toList());
-            }
-            return Collections.emptyList();
+            // 3. Recorremos la lista de canciones y extraemos solo el campo "id"
+            return response.getBody() != null ? response.getBody().stream()
+                .map(songJson -> (Integer) songJson.get("id")) 
+                .collect(Collectors.toList())
+                : Collections.emptyList();
             
         } catch (Exception e) {
-            System.err.println("Error al obtener IDs de canciones para álbum " + albumId + ": " + e.getMessage());
+            System.err.println("Error al obtener canciones del álbum " + albumId + ": " + e.getMessage());
+            // Si el álbum no tiene canciones o no existe, devolvemos lista vacía para no romper el programa
             return Collections.emptyList();
         }
     }
 
- public Integer obtenerIdAlbumPorCancion(Integer idCancion) {
-        // Endpoint: GET /api/canciones/{song_id}
-        String url = CONTENIDO_BASE_URL + "/canciones/" + idCancion;
+    public Integer obtenerIdAlbumPorCancion(Integer idCancion) {
+        String url = CONTENIDO_BASE_URL + "/api/canciones/" + idCancion;
         
         try {
-            // 🚩 Mapeamos a la clase ExternalSongData (que incluye idAlbum)
             ExternalSongData info = restTemplate.getForObject(url, ExternalSongData.class);
-            return info != null ? info.getIdAlbum() : null; // Usamos getIdAlbum() de ExternalSongData
+            return info != null ? info.getIdAlbum() : null;
 
         } catch (Exception e) {
-            System.err.println("Error al obtener ID de álbum para canción " + idCancion + ": " + e.getMessage());
             return null;
         }
     }
     
     public List<Integer> obtenerIdsCancionesPorArtista(String emailArtista) {
-    // Endpoint: GET /api/artistas/{email_artista}/canciones
-    String url = CONTENIDO_BASE_URL + "/artistas/" + emailArtista + "/canciones";
+        String url = CONTENIDO_BASE_URL + "/api/artistas/" + emailArtista + "/canciones";
     
-    try {
-        // La respuesta es una lista de objetos complejos, los mapeamos a ExternalSongData
-        ResponseEntity<List<ExternalSongData>> response = restTemplate.exchange(
-            url, 
-            HttpMethod.GET, 
-            null, 
-            new ParameterizedTypeReference<List<ExternalSongData>>() {}
-        );
-        
-        // Extraemos solo el campo 'id' de cada ExternalSongData
-        return response.getBody() != null ? response.getBody().stream()
-            .map(ExternalSongData::getId) // Asumiendo que ExternalSongData tiene getId() y es Integer
-            .collect(Collectors.toList())
-            : Collections.emptyList();
+        try {
+            ResponseEntity<List<ExternalSongData>> response = restTemplate.exchange(
+                url, 
+                HttpMethod.GET, 
+                null, 
+                new ParameterizedTypeReference<List<ExternalSongData>>() {}
+            );
+            
+            return response.getBody() != null ? response.getBody().stream()
+                .map(ExternalSongData::getId) 
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
         } catch (Exception e) {
-          System.err.println("Error al obtener IDs de canciones para el artista " + emailArtista + ": " + e.getMessage());
-          return Collections.emptyList();
+            System.err.println("Error al obtener canciones del artista " + emailArtista + ": " + e.getMessage());
+            return Collections.emptyList();
         }
     }
 }
