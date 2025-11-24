@@ -15,6 +15,7 @@ public class EstadisticaCancionDocument {
     private Long reproduccionesTotales = 0L;
     private Float valoracionMedia = 0.0f;
     private Integer totalValoraciones = 0;
+    private double ingresos;
 
     public Integer getIdCancion() { return idCancion; }
     public void setIdCancion(Integer idCancion) { this.idCancion = idCancion; }
@@ -27,4 +28,8 @@ public class EstadisticaCancionDocument {
     
     public Integer getTotalValoraciones() { return totalValoraciones; }
     public void setTotalValoraciones(Integer totalValoraciones) { this.totalValoraciones = totalValoraciones; }
+
+    public double getIngresos() {return ingresos; }
+
+    public void setIngresos(double ingresos) {   this.ingresos = ingresos;  }
 }

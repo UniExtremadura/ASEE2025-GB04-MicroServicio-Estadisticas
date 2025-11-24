@@ -6,23 +6,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "estadisticas_album")
 public class EstadisticaAlbumDocument {
     
+    // Usamos el ID de la canción como ID de MongoDB.
     @Id 
     private Integer idAlbum;
-
+    
     private Long reproduccionesTotales = 0L;
     private Float valoracionMedia = 0.0f;
     private Integer totalValoraciones = 0;
-
-    // 👉 Constructor vacío (NECESARIO)
-    public EstadisticaAlbumDocument() {}
-
-    // 👉 Constructor usado por tu controlador
-    public EstadisticaAlbumDocument(Integer idAlbum, Float valoracionMedia, Integer totalValoraciones, Long reproduccionesTotales) {
-        this.idAlbum = idAlbum;
-        this.valoracionMedia = valoracionMedia;
-        this.totalValoraciones = totalValoraciones;
-        this.reproduccionesTotales = reproduccionesTotales;
-    }
+    private double ingresos;
 
     public Integer getIdAlbum() { return idAlbum; }
     public void setIdAlbum(Integer idAlbum) { this.idAlbum = idAlbum; }
@@ -35,4 +26,7 @@ public class EstadisticaAlbumDocument {
     
     public Integer getTotalValoraciones() { return totalValoraciones; }
     public void setTotalValoraciones(Integer totalValoraciones) { this.totalValoraciones = totalValoraciones; }
+
+    public void setIngresos(double ingresos) { this.ingresos = ingresos; }
+    public double getIngresos() { return ingresos; }
 }
