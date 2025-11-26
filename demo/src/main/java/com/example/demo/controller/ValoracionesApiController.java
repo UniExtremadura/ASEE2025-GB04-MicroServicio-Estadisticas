@@ -36,7 +36,7 @@ public class ValoracionesApiController {
 
     @Autowired
     private ValoracionRepository valoracionRepository;
-
+    // aqui se guardan las valoraciones en la base de datos
     @PostMapping("/valoraciones")
     @Operation(summary = "Dejar valoración", description = "Permite a un usuario registrado valorar una canción o un álbum. Se debe proporcionar idSong o idAlbum, pero no ambos.")
     public ResponseEntity<ValoracionDocument> dejarValoracion(@Valid @RequestBody ValoracionInput valoracionInput) {
