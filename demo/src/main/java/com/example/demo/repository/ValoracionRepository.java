@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -10,15 +11,16 @@ public interface ValoracionRepository extends MongoRepository<ValoracionDocument
   
     List<ValoracionDocument> findByIdSong(Integer idSong);
     
-   
     List<ValoracionDocument> findByIdAlbum(Integer idAlbum);
     
+    Optional<ValoracionDocument> findByEmailUserAndIdSong(String emailUser, Integer idSong);
 
-    List<ValoracionDocument> findByEmailArtista(String emailArtista);
+    Optional<ValoracionDocument> findByEmailUserAndIdAlbum(String emailUser, Integer idAlbum);
 
-    List<ValoracionDocument> findByEmailUsuario(String emailUsuario);
+    List<ValoracionDocument> findByEmailUser(String emailUser);
     
     List<ValoracionDocument> findByValoracionGreaterThan(int valoracion);
 
-    void deleteByIdSong(Integer idSong);
+    Optional<ValoracionDocument> deleteByIdSong(Integer idSong);
+
 }

@@ -9,30 +9,27 @@ public class ValoracionDocument {
     @Id 
     private String id;
     
-    private String emailUsuario;
+    private String emailUser;
     private Integer idSong;
     private Integer idAlbum;
-    private String emailArtista;
-    private Integer valoracion;
-    private String comentario;
+    private Float valoracion;
+
     
     // El compilador necesita que definas estos métodos explícitamente:
 
     // Getters
     public String getId() { return id; }
-    public String getEmailUsuario() { return emailUsuario; }
+    public String getEmailUser() { return emailUser; }
     public Integer getIdSong() { return idSong; }
     public Integer getIdAlbum() { return idAlbum; }
-   public String getEmailArtista() { return emailArtista; }
-    public Integer getValoracion() { return valoracion; }
-    public String getComentario() { return comentario; }
+    public Float getValoracion() { return valoracion; }
+
 
     // Setters
     public void setId(String id) { this.id = id; }
-    public void setEmailUsuario(String emailUsuario) { this.emailUsuario = emailUsuario; }
+    public void setEmailUser(String emailUser) { this.emailUser = emailUser; }
     public void setIdSong(Integer idSong) { this.idSong = idSong; }
     public void setIdAlbum(Integer idAlbum) { this.idAlbum = idAlbum; }
-    public void setEmailArtista(String emailArtista) { this.emailArtista = emailArtista; }
-    public void setValoracion(Integer valoracion) { this.valoracion = valoracion; }
-    public void setComentario(String comentario) { this.comentario = comentario; }
+    public void setValoracion(Float valoracion) { this.valoracion = valoracion; }
+
 }

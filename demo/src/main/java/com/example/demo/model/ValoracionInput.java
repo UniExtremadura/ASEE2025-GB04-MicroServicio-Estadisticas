@@ -1,10 +1,30 @@
 package com.example.demo.model;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 public class ValoracionInput {
     private String emailUser;
     private Integer idSong;
-    private Integer valoracion;
-    private String comentario;
+    private Integer idAlbum;
+    
+    @Min(0)
+    @Max(5)
+    private Float valoracion;
+
+    @AssertTrue(message = "La valoración debe ser un múltiplo de 0.5")
+    private boolean isValoracionStepValid() {
+        if (valoracion == null) {
+            return true; // Let @NotNull handle this if needed
+        }
+        return (valoracion * 2) % 1 == 0;
+    }
+
+    @AssertTrue(message = "Debe proporcionar idSong o idAlbum, pero no ambos.")
+    private boolean isOnlyOneOfSongOrAlbum() {
+        return (idSong == null) != (idAlbum == null);
+    }
 
     public String getEmailUser() {
         return emailUser;
@@ -22,19 +42,19 @@ public class ValoracionInput {
         this.idSong = idSong;
     }
 
-    public Integer getValoracion() {
+    public Integer getIdAlbum() {
+        return idAlbum;
+    }
+
+    public void setIdAlbum(Integer idAlbum) {
+        this.idAlbum = idAlbum;
+    }
+
+    public Float getValoracion() {
         return valoracion;
     }
 
-    public void setValoracion(Integer valoracion) {
+    public void setValoracion(Float valoracion) {
         this.valoracion = valoracion;
-    }
-
-    public String getComentario() {
-        return comentario;
-    }
-
-    public void setComentario(String comentario) {
-        this.comentario = comentario;
     }
 }

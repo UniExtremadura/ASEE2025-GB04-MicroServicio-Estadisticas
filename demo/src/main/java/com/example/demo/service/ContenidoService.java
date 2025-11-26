@@ -12,6 +12,7 @@ import com.example.demo.model.ExternalSongData;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -142,5 +143,15 @@ public class ContenidoService {
             System.err.println("Error al obtener canciones del artista " + emailArtista + ": " + e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    public List<Integer> obtenerIdsAlbumesPorArtista(String emailArtista) {
+        List<Integer> idsCanciones = obtenerIdsCancionesPorArtista(emailArtista);
+        
+        return idsCanciones.stream()
+            .map(this::obtenerIdAlbumPorCancion) 
+            .filter(Objects::nonNull) 
+            .distinct() 
+            .collect(Collectors.toList());
     }
 }
