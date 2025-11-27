@@ -462,5 +462,29 @@ public class EstadisticasApiController {
         }
         List<EstadisticaAlbumDocument> estadisticas = (List<EstadisticaAlbumDocument>) estadisticaAlbumRepository.findAllById(ids);
         return ResponseEntity.ok(estadisticas);
+
     }
+
+// ----------------------------------------------------
+    // GET /estadisticas/usuario/{email}/reproducciones/resumen
+    // ----------------------------------------------------
+    @Operation(summary = "Obtener conteo de reproducciones por canción para un usuario")
+    @GetMapping("/estadisticas/usuario/{email}/reproducciones/resumen")
+    public ResponseEntity<Map<Integer, Long>> getResumenReproduccionesUsuario(@PathVariable("email") String emailUser) {
+        
+        List<ReproduccionDocument> historial = reproduccionRepository.findByEmailUser(emailUser);
+        
+        // Agrupar por ID de canción y contar
+        Map<Integer, Long> conteoPorCancion = historial.stream()
+            .collect(Collectors.groupingBy(
+                ReproduccionDocument::getIdCancion, 
+                Collectors.counting()
+            ));
+            
+        return ResponseEntity.ok(conteoPorCancion);
+    }
+
 }
+
+
+
