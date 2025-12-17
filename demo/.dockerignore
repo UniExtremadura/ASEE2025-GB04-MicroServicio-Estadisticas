@@ -1,0 +1,13 @@
+# SÍ ignoramos la carpeta target local para evitar conflictos
+target/
+
+# SÍ ignoramos archivos de configuración del IDE y Git
+.git/
+.vscode/
+.idea/
+.settings/
+.classpath
+.project
+
+# SÍ ignoramos logs
+*.log
