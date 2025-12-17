@@ -1,0 +1,10 @@
+target/
+!target/*.jar
+src/
+.git/
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml
+Dockerfile
+.dockerignore
